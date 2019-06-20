@@ -996,7 +996,7 @@ namespace symspell {
                 vector<const char*> lineParts;
                 std::stringstream ss(line);
                 std::string token;
-                while (std::getline(ss, token, ' ')) {
+                while (std::getline(ss, token, '\t')) {
                     size_t len = token.size();
                     char* tmp = new char[len + 1];
                     std::memcpy(tmp, token.c_str(), len);
