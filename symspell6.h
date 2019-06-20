@@ -587,6 +587,8 @@ namespace symspell {
             }
 
             words[key] = count;
+         
+            wordsEnd = words.end();
 
             if (keyLen > maxDictionaryWordLength)
                 maxDictionaryWordLength = keyLen;
