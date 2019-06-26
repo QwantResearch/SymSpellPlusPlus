@@ -10,7 +10,7 @@ namespace symspell {
         this->term = p.term;
     }
 
-    SuggestItem::SuggestItem(const char* term, int32_t distance, int64_t count)
+    SuggestItem::SuggestItem(const char* term, int distance, long count)
     {
         this->term = term;
         this->distance = distance;
@@ -57,5 +57,10 @@ namespace symspell {
         item.term = this->term;
 
         return item;
+    }
+    
+    std::string SuggestItem::ToString()
+    {
+        cout << this->term << "\t" << this->count << "\t"<< this->distance << endl;
     }
 }

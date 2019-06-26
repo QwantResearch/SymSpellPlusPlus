@@ -28,19 +28,11 @@
 
 // typedef unsigned int u_int8_t;
 // 
-// typedef long int32_t;
-// typedef unsigned long u_int32_t;
+// typedef long int;
+// typedef unsigned long u_int;
 // 
-// typedef long long int64_t;
-// typedef unsigned long long u_int64_t;
-
-char *strndup(const char *s1, size_t n)
-{
-    char *copy = (char*)malloc(n + 1);
-    memcpy(copy, s1, n);
-    copy[n] = 0;
-    return copy;
-};
+// typedef long long long;
+// typedef unsigned long long u_long;
 
 // #define SPP_USE_SPP_ALLOC 1
 // #define CUSTOM_MAP sparse_hash_map
@@ -56,7 +48,7 @@ namespace symspell {
 #define defaultMaxEditDistance 2
 #define defaultPrefixLength 7
 #define defaultCountThreshold 1
-#define defaultInitialCapacity 4096
+#define defaultInitialCapacity 1024
 #define defaultCompactLevel 16
 #define mini(a, b, c) (min(a, min(b, c)))
 
@@ -74,34 +66,35 @@ namespace symspell {
     class Node
     {
     public:
-        const char* suggestion;
-        int64_t next;
+        string suggestion;
+        long next;
     };
 
     class Entry
     {
     public:
-        int64_t count;
-        int64_t first;
+        long count;
+        long first;
     };  
     namespace {
-        int32_t findCharLocation(const char * text, char ch)
+        int findCharLocation(string & text, char ch)
         {
-            const char* finded = strchr(text, ch);
-            if (finded == nullptr)
-                return -1;
-
-            return finded - text + 1;
+            return (int)text.find(ch);
+            
+//             if (finded == nullptr)
+//                 return -1;
+// 
+//             return finded - text + 1;
         }
     }
 
     struct Hash64 {
-        size_t operator()(uint64_t k) const { return (k ^ 14695981039346656037ULL) * 1099511628211ULL; }
+        size_t operator()(ulong k) const { return (k ^ 14695981039346656037ULL) * 1099511628211ULL; }
     };
 
     struct comp_c_string {
-        bool operator()(const char *s1, const char *s2) const {
-            return (s1 == s2) || (s1 && s2 && strcmp(s1, s2) == 0);
+        bool operator()(string& s1, string& s2) const {
+            return (s1 == s2) || (s1.compare(s2) == 0);
         }
     };
 
@@ -111,22 +104,31 @@ namespace symspell {
             seed ^= v + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
 
-        std::size_t operator() (const char* p) const
+        std::size_t operator() (string& p) const
         {
             size_t hash = 0;
-            for (; *p; ++p)
-                hash ^= *p + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+            for (auto inc_p = p.begin(); inc_p != p.end(); inc_p++)
+                hash ^= *inc_p + 0x9e3779b9 + (hash << 6) + (hash >> 2);
             return hash;
         }
     };
+//     char* strndup(string s1, size_t n);
+    inline string strndup(string& s1, size_t n)
+    {
+        return s1.substr(0,n);
+//         char *copy = (char*)malloc(n + 1);
+//         memcpy(copy, s1, n);
+//         copy[n] = 0;
+//         return copy;
+    }
 
     /*
  * Copied from https://github.com/PierreBoyeau/levenshtein_distance
  * ########## BEGIN ##########
  */
 
-    int levenshtein_dist(char const* word1, char const* word2);
-    int dl_dist(char const* word1, char const* word2);
+    int levenshtein_dist(string& word1, string& word2);
+    int dl_dist(string& word1, string& word2);
     
 }
 

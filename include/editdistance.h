@@ -28,11 +28,11 @@ public:
         }
     }
 
-    int Compare(char const* string1, char const* string2, int maxDistance);
+    int Compare(string & string1, string & string2, int maxDistance);
 
 private:
     DistanceAlgorithm algorithm;
-    int(*distanceComparer)(char const*, char const*);
+    int(*distanceComparer)(string &, string &);
 };
 }
 #endif // SYMSPELL_EDITDISTANCE_H

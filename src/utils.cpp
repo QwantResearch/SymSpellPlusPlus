@@ -1,7 +1,9 @@
 #include "utils.h"
 
 namespace symspell {
-    int levenshtein_dist(char const* word1, char const* word2) 
+
+
+    int levenshtein_dist(string& word1, string& word2) 
     {
         ///
         ///  Please use lower-case strings
@@ -36,7 +38,7 @@ namespace symspell {
         return(res);
     }
 
-    inline int dl_dist(char const* word1, char const* word2) 
+    int dl_dist(string& word1, string& word2) 
     {
         /// Damerau-Levenshtein distance
         ///  Please use lower-case strings

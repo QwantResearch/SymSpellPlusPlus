@@ -2,7 +2,7 @@
 
 namespace symspell {
 
-    SymSpell::SymSpell(int32_t initialCapacity, int32_t maxDictionaryEditDistance, int32_t prefixLength, int32_t countThreshold, int32_t compactLevel)
+    SymSpell::SymSpell(int initialCapacity, int maxDictionaryEditDistance, int prefixLength, int countThreshold, int compactLevel)
     {
         if (initialCapacity < 0) throw std::invalid_argument("initialCapacity");
         if (maxDictionaryEditDistance < 0) throw std::invalid_argument("maxDictionaryEditDistance");
@@ -19,7 +19,7 @@ namespace symspell {
         this->prefixLength = prefixLength;
         this->countThreshold = countThreshold;
         if (compactLevel > 16) compactLevel = 16;
-        this->compactMask = ((std::numeric_limits<uint32_t>::max)() >> (3 + compactLevel)) << 2;
+        this->compactMask = ((std::numeric_limits<int>::max)() >> (3 + compactLevel)) << 2;
         this->deletesEnd = this->deletes.end();
         this->wordsEnd = this->words.end();
         this->belowThresholdWordsEnd = this->belowThresholdWords.end();
@@ -29,7 +29,7 @@ namespace symspell {
 
     SymSpell::~SymSpell()
     {
-        vector<const char*>::iterator vecEnd;
+        vector<string>::iterator vecEnd;
         auto deletesEnd = this->deletes.end();
         for (auto it = this->deletes.begin(); it != deletesEnd; ++it)
         {
@@ -43,7 +43,7 @@ namespace symspell {
         delete this->distanceComparer;
     }
 
-    bool SymSpell::CreateDictionaryEntry(const char * key, int64_t count, SuggestionStage * staging)
+    bool SymSpell::CreateDictionaryEntry(const char * key, long count, SuggestionStage * staging)
     {
         int keyLen = strlen(key);
         if (count <= 0)
@@ -52,7 +52,7 @@ namespace symspell {
             count = 0;
         }
 
-        int64_t countPrevious = -1;
+        long countPrevious = -1;
         auto belowThresholdWordsFinded = belowThresholdWords.find(key);
         auto wordsFinded = words.find(key);
 
@@ -62,7 +62,7 @@ namespace symspell {
         {
             countPrevious = belowThresholdWordsFinded->second;
             // calculate new count for below threshold word
-            count = ((std::numeric_limits<int64_t>::max)() - countPrevious > count) ? countPrevious + count : (std::numeric_limits<int64_t>::max)();
+            count = ((std::numeric_limits<long>::max)() - countPrevious > count) ? countPrevious + count : (std::numeric_limits<long>::max)();
             // has reached threshold - remove from below threshold collection (it will be added to correct words below)
             if (count >= countThreshold)
             {
@@ -79,7 +79,7 @@ namespace symspell {
         else if (wordsFinded != wordsEnd)
         {
             countPrevious = wordsFinded->second;
-            count = ((std::numeric_limits<int64_t>::max)() - countPrevious > count) ? countPrevious + count : (std::numeric_limits<int64_t>::max)();
+            count = ((std::numeric_limits<long>::max)() - countPrevious > count) ? countPrevious + count : (std::numeric_limits<long>::max)();
             words[key] = count;
             return false;
         }
@@ -130,7 +130,7 @@ namespace symspell {
                     std::memcpy(tmp, key, keyLen);
                     tmp[keyLen] = '\0';
 
-                    deletes[deleteHash] = vector<const char*>();
+                    deletes[deleteHash] = vector<string>();
                     //deletes[deleteHash].resize(1);
                     deletes[deleteHash].push_back(tmp);
                     deletesEnd = deletes.end();
@@ -142,7 +142,7 @@ namespace symspell {
         return true;
     }
 
-    void SymSpell::EditsPrefix(const char* key, CUSTOM_SET<size_t>& hashSet)
+    void SymSpell::EditsPrefix(string key, unordered_set<size_t>& hashSet)
     {
         size_t len = strlen(key);
         char* tmp = nullptr;
@@ -166,7 +166,7 @@ namespace symspell {
         Edits(tmp, 0, hashSet);
     }
 
-    void SymSpell::Edits(const char * word, int32_t editDistance, CUSTOM_SET<size_t> & deleteWords)
+    void SymSpell::Edits(const char * word, int editDistance, unordered_set<size_t> & deleteWords)
     {
         auto deleteWordsEnd = deleteWords.end();
         ++editDistance;
@@ -209,12 +209,12 @@ namespace symspell {
         this->Lookup(input, verbosity, this->maxDictionaryEditDistance, false, items);
     }
 
-    void SymSpell::Lookup(const char * input, Verbosity verbosity, int32_t maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items)
+    void SymSpell::Lookup(const char * input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items)
     {
         this->Lookup(input, verbosity, maxEditDistance, false, items);
     }
 
-    void SymSpell::Lookup(const char * input, Verbosity verbosity, int32_t maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions)
+    void SymSpell::Lookup(const char * input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions)
     {
         mtx.lock();
         suggestions.clear();
@@ -228,7 +228,7 @@ namespace symspell {
         // maxEditDistance used in Lookup can't be bigger than the maxDictionaryEditDistance
         // used to construct the underlying dictionary structure.
         if (maxEditDistance > MaxDictionaryEditDistance())  throw std::invalid_argument("maxEditDistance");
-        int64_t suggestionCount = 0;
+        long suggestionCount = 0;
         size_t suggestionsLen = 0;
         auto wordsFinded = words.find(input);
         int inputLen = strlen(input);
@@ -250,9 +250,10 @@ namespace symspell {
         if (wordsFinded != wordsEnd)
         {
             suggestionCount = wordsFinded->second;
-
+            cerr << "Exact Match "<< input << suggestionCount << endl;
             {
                 std::unique_ptr<SuggestItem> unq(new SuggestItem(_strdup(input), 0, suggestionCount));
+                unq->ToString();
                 suggestions.push_back(std::move(unq));
             }
 
@@ -308,7 +309,7 @@ namespace symspell {
         size_t candidatesLen = 1; // candidates.size();
         while (candidatePointer < candidatesLen)
         {
-            const char* candidate = candidates[candidatePointer++];
+            string candidate = candidates[candidatePointer++];
             int candidateLen = strlen(candidate);
             int lengthDiff = inputPrefixLen - candidateLen;
 
@@ -323,7 +324,7 @@ namespace symspell {
             }
 
             auto deletesFinded = deletes.find(stringHash(candidate));
-            vector<const char*>* dictSuggestions = nullptr;
+            vector<string>* dictSuggestions = nullptr;
 
             //read candidate entry from dictionary
             if (deletesFinded != deletesEnd)
@@ -333,7 +334,7 @@ namespace symspell {
                 //iterate through suggestions (to other correct dictionary items) of delete item and add them to suggestion list
                 for (int i = 0; i < dictSuggestionsLen; ++i)
                 {
-                    const char* suggestion = dictSuggestions->at(i);
+                    string suggestion = dictSuggestions->at(i);
                     int suggestionLen = strlen(suggestion);
                     if (strcmp(suggestion, input) == 0) continue;
                     if ((abs(suggestionLen - inputLen) > maxEditDistance2) // input and sugg lengths diff > allowed/current best distance
@@ -387,10 +388,13 @@ namespace symspell {
 
                     if (distance <= maxEditDistance2)
                     {
-                        suggestionCount = words[suggestion];
-
+                        auto wordsFindedNew = words.find(strdup(suggestion));
+                        if (wordsFindedNew != wordsEnd) cerr << wordsFindedNew->second<<endl;
+                        else cerr << "Error, can't find " << suggestion << endl;
+                        
+                        suggestionCount = words[strdup(suggestion)];
+                        cerr << "TEST HERE : " << "\t" << suggestion << "\t" << distance <<  "\t" << suggestionCount<< "\t" <<endl;
                         std::unique_ptr<SuggestItem> si(new SuggestItem(_strdup(suggestion), distance, suggestionCount));
-
                         if (suggestionsLen > 0)
                         {
                             switch (verbosity)
@@ -479,7 +483,7 @@ namespace symspell {
 
     }//end if
 
-    bool SymSpell::LoadDictionary(const char* corpus, int termIndex, int countIndex)
+    bool SymSpell::LoadDictionary(string corpus, int termIndex, int countIndex)
     {
         ifstream stream;
         stream.open(corpus);
@@ -499,7 +503,7 @@ namespace symspell {
         string line;
         while (getline(stream, line))
         {
-            vector<const char*> lineParts;
+            vector<string> lineParts;
             std::stringstream ss(line);
             std::string token;
             while (std::getline(ss, token, '\t')) {
@@ -512,7 +516,7 @@ namespace symspell {
 
             if (lineParts.size() >= 2)
             {
-                int64_t count = stoll(lineParts[countIndex]);
+                long count = stoll(lineParts[countIndex]);
                 CreateDictionaryEntry(lineParts[termIndex], count/*, &staging*/);
             }
 
@@ -542,17 +546,17 @@ namespace symspell {
         } while (*j++ != 0);
     }
 
-    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(const char* input)
+    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string input)
     {
         return WordSegmentation(input, this->maxDictionaryEditDistance, this->maxDictionaryWordLength);
     }
 
-    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(const char* input, size_t maxEditDistance)
+    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string input, size_t maxEditDistance)
     {
         return WordSegmentation(input, maxEditDistance, this->maxDictionaryWordLength);
     }
 
-    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(const char* input, size_t maxEditDistance, size_t maxSegmentationWordLength)
+    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string input, size_t maxEditDistance, size_t maxSegmentationWordLength)
     {
         size_t inputLen = strlen(input);
         int arraySize = min(maxSegmentationWordLength, strlen(input));
@@ -646,8 +650,8 @@ namespace symspell {
                     //replace values if smaller edit distance
                     || (compositions[circularIndex]->distanceSum + separatorLength + topEd < compositions[destinationIndex]->distanceSum))
                 {
-                    const char* segmented = compositions[circularIndex]->segmentedString;
-                    const char* corrected = compositions[circularIndex]->correctedString;
+                    string segmented = compositions[circularIndex]->segmentedString;
+                    string corrected = compositions[circularIndex]->correctedString;
 
                     size_t segmentedLen = strlen(segmented);
                     size_t correctedLen = strlen(corrected);

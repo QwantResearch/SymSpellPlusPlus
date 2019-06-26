@@ -13,14 +13,15 @@ public:
     /// <summary>The suggested correctly spelled word.</summary>
     const char* term;
     /// <summary>Edit distance between searched for word and suggestion.</summary>
-    u_int8_t distance = 0;
+    int distance = 0;
     /// <summary>Frequency of suggestion in the dictionary (a measure of how common the word is).</summary>
-    int64_t count = 0;
+    long count = 0;
 
     SuggestItem() { }
     SuggestItem(const symspell::SuggestItem & p);
+    std::string ToString();
 
-    SuggestItem(const char* term, int32_t distance, int64_t count);
+    SuggestItem(const char* term, int distance, long count);
 
     ~SuggestItem();
 
