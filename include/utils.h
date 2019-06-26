@@ -1,6 +1,7 @@
 #ifndef SYMSPELL_UTILS_H
 #define SYMSPELL_UTILS_H
 
+#include <memory>
 #include <stdint.h>
 #include <vector>
 #include <functional>
@@ -18,8 +19,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
+#include <math.h>
 // #include <sparsepp/spp.h>
-
+#define _strdup strdup
 
 #define CUSTOM_MAP unordered_map
 #define CUSTOM_SET unordered_set

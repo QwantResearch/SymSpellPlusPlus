@@ -4,6 +4,10 @@
 
 #include "utils.h"
 #include "suggestitem.h"
+#include "suggestionstage.h"
+#include "wordsegmentationitem.h"
+#include "editdistance.h"
+
 
 
 #define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS 1

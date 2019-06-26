@@ -2,7 +2,7 @@
 
 namespace symspell {
 
-    SymSpell::SymSpell(int32_t initialCapacity = defaultInitialCapacity, int32_t maxDictionaryEditDistance = defaultMaxEditDistance, int32_t prefixLength = defaultPrefixLength, int32_t countThreshold = defaultCountThreshold, int32_t compactLevel = defaultCompactLevel)
+    SymSpell::SymSpell(int32_t initialCapacity, int32_t maxDictionaryEditDistance, int32_t prefixLength, int32_t countThreshold, int32_t compactLevel)
     {
         if (initialCapacity < 0) throw std::invalid_argument("initialCapacity");
         if (maxDictionaryEditDistance < 0) throw std::invalid_argument("maxDictionaryEditDistance");
@@ -43,7 +43,7 @@ namespace symspell {
         delete this->distanceComparer;
     }
 
-    bool SymSpell::CreateDictionaryEntry(const char * key, int64_t count, SuggestionStage * staging = nullptr)
+    bool SymSpell::CreateDictionaryEntry(const char * key, int64_t count, SuggestionStage * staging)
     {
         int keyLen = strlen(key);
         if (count <= 0)
@@ -698,5 +698,3 @@ namespace symspell {
         return true;
     }
 }
-
-#endif // SYMSPELL6_H

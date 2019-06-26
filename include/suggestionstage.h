@@ -2,6 +2,7 @@
 #define SYMSPELL_SUGGESTIONSTAGE_H
 
 #include "utils.h"
+# include "chunkarray.h"
 
 using namespace std;
 
