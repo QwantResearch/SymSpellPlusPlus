@@ -479,7 +479,7 @@ namespace symspell {
 
     }//end if
 
-    bool SymSpell::LoadDictionary(char* corpus, int termIndex, int countIndex)
+    bool SymSpell::LoadDictionary(const char* corpus, int termIndex, int countIndex)
     {
         ifstream stream;
         stream.open(corpus);

@@ -28,7 +28,7 @@ namespace symspell {
         void Lookup(const char * input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items);
         void Lookup(const char * input, Verbosity verbosity, int32_t maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items);
         void Lookup(const char * input, Verbosity verbosity, int32_t maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions);
-        bool LoadDictionary(char* corpus, int termIndex, int countIndex);
+        bool LoadDictionary(const char* corpus, int termIndex, int countIndex);
         void rempaceSpaces(char* source);
         shared_ptr<WordSegmentationItem> WordSegmentation(const char* input);
         shared_ptr<WordSegmentationItem> WordSegmentation(const char* input, size_t maxEditDistance);
