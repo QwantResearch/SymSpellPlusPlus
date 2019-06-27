@@ -10,17 +10,17 @@ namespace symspell {
         this->term = p.term;
     }
 
-    SuggestItem::SuggestItem(const char* term, int distance, long count)
+    SuggestItem::SuggestItem(string term, int distance, long count)
     {
         this->term = term;
         this->distance = distance;
         this->count = count;
     }
 
-    SuggestItem::~SuggestItem()
-    {
-        delete[] term;
-    }
+    SuggestItem::~SuggestItem(){}
+//     {
+//         delete term;
+//     }
   
     bool SuggestItem::CompareTo(SuggestItem const& other)
     {
@@ -41,7 +41,8 @@ namespace symspell {
 
     bool SuggestItem::operator == (const SuggestItem &ref) const
     {
-        return strcmp(this->term, ref.term) == 0;
+//         return strcmp(this->term, ref.term) == 0;
+        return this->term.compare(ref.term) == 0;
     }
 
     std::size_t SuggestItem::GetHashCode()

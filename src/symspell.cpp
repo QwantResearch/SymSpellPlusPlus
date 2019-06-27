@@ -30,22 +30,22 @@ namespace symspell {
     SymSpell::~SymSpell()
     {
         vector<string>::iterator vecEnd;
-        auto deletesEnd = this->deletes.end();
-        for (auto it = this->deletes.begin(); it != deletesEnd; ++it)
-        {
-            vecEnd = it->second.end();
-            for (auto vecIt = it->second.begin(); vecIt != vecEnd; ++vecIt)
-            {
-                delete[] * vecIt;
-            }
-        }
+//         auto deletesEnd = this->deletes.end();
+//         for (auto it = this->deletes.begin(); it != deletesEnd; ++it)
+//         {
+//             vecEnd = it->second.end();
+//             for (auto vecIt = it->second.begin(); vecIt != vecEnd; ++vecIt)
+//             {
+//                 delete[] * vecIt;
+//             }
+//         }
 
         delete this->distanceComparer;
     }
 
-    bool SymSpell::CreateDictionaryEntry(const char * key, long count, SuggestionStage * staging)
+    bool SymSpell::CreateDictionaryEntry(string key, long count, SuggestionStage * staging)
     {
-        int keyLen = strlen(key);
+        int keyLen = (int)key.size();
         if (count <= 0)
         {
             if (this->countThreshold > 0) return false; // no point doing anything if count is zero, as it can't change anything
@@ -104,7 +104,7 @@ namespace symspell {
             auto editsEnd = edits.end();
             for (auto it = edits.begin(); it != editsEnd; ++it)
             {
-                staging->Add(*it, _strdup(key));
+                staging->Add(*it, key);
             }
         }
         else
@@ -114,27 +114,13 @@ namespace symspell {
             {
                 size_t deleteHash = *it;
                 auto deletesFinded = deletes.find(deleteHash);
-                if (deletesFinded != deletesEnd)
+                string tmp=key.substr(0,keyLen);
+                if (deletesFinded == deletesEnd)
                 {
-                    char* tmp = new char[keyLen + 1];
-                    std::memcpy(tmp, key, keyLen);
-                    tmp[keyLen] = '\0';
-
-                    //delete[] deletes[deleteHash][deletesFinded->second.size() - 1];
-                    deletes[deleteHash].push_back(tmp);
-                    deletesEnd = deletes.end();
-                }
-                else
-                {
-                    char* tmp = new char[keyLen + 1];
-                    std::memcpy(tmp, key, keyLen);
-                    tmp[keyLen] = '\0';
-
                     deletes[deleteHash] = vector<string>();
-                    //deletes[deleteHash].resize(1);
-                    deletes[deleteHash].push_back(tmp);
-                    deletesEnd = deletes.end();
                 }
+                deletes[deleteHash].push_back(tmp);
+                deletesEnd = deletes.end();
             }
         }
 
@@ -144,41 +130,45 @@ namespace symspell {
 
     void SymSpell::EditsPrefix(string key, unordered_set<size_t>& hashSet)
     {
-        size_t len = strlen(key);
-        char* tmp = nullptr;
+        int len = (int)key.size();
+        string tmp;
         /*if (len <= maxDictionaryEditDistance) //todo fix
             hashSet.insert("");*/
 
         if (len > prefixLength)
         {
-            tmp = new char[prefixLength + 1];
-            std::memcpy(tmp, key, prefixLength);
-            tmp[prefixLength] = '\0';
+            tmp = key.substr(0,prefixLength);
+//             char[prefixLength + 1];
+//             std::memcpy(tmp, key, prefixLength);
+//             tmp[prefixLength] = '\0';
         }
         else
         {
-            tmp = new char[len + 1];
-            std::memcpy(tmp, key, len);
-            tmp[len] = '\0';
+            tmp = key.substr(0,len);
+//             tmp = new char[len + 1];
+//             std::memcpy(tmp, key, len);
+//             tmp[len] = '\0';
         }
 
         hashSet.insert(stringHash(tmp));
         Edits(tmp, 0, hashSet);
     }
 
-    void SymSpell::Edits(const char * word, int editDistance, unordered_set<size_t> & deleteWords)
+    void SymSpell::Edits(string word, int editDistance, unordered_set<size_t> & deleteWords)
     {
         auto deleteWordsEnd = deleteWords.end();
         ++editDistance;
-        size_t wordLen = strlen(word);
+        int wordLen = (int)word.size();
         if (wordLen > 1)
         {
             for (size_t i = 0; i < wordLen; ++i)
             {
-                char* tmp = new char[wordLen];
-                std::memcpy(tmp, word, i);
-                std::memcpy(tmp + i, word + i + 1, wordLen - 1 - i);
-                tmp[wordLen - 1] = '\0';
+                string tmp; 
+                tmp = word.substr(0,i);
+                tmp += word.substr(i+1,wordLen - i);
+//                 std::memcpy(tmp, word, i);
+//                 std::memcpy(tmp + i, word + i + 1, wordLen - 1 - i);
+//                 tmp[wordLen - 1] = '\0';
 
                 if (deleteWords.insert(stringHash(tmp)).second)
                 {
@@ -186,9 +176,10 @@ namespace symspell {
                     if (editDistance < maxDictionaryEditDistance && (wordLen - 1) > 1)
                         Edits(tmp, editDistance, deleteWords);
                 }
-                else {
-                    delete[] tmp;
-                }
+                tmp.clear();
+//                 else {
+//                     delete[] tmp;
+//                 }
             }
         }
     }
@@ -204,17 +195,17 @@ namespace symspell {
         staging.CommitTo(deletes);
     }
 
-    void SymSpell::Lookup(const char * input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items)
+    void SymSpell::Lookup(string input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items)
     {
         this->Lookup(input, verbosity, this->maxDictionaryEditDistance, false, items);
     }
 
-    void SymSpell::Lookup(const char * input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items)
+    void SymSpell::Lookup(string input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items)
     {
         this->Lookup(input, verbosity, maxEditDistance, false, items);
     }
 
-    void SymSpell::Lookup(const char * input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions)
+    void SymSpell::Lookup(string input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions)
     {
         mtx.lock();
         suggestions.clear();
@@ -231,7 +222,7 @@ namespace symspell {
         long suggestionCount = 0;
         size_t suggestionsLen = 0;
         auto wordsFinded = words.find(input);
-        int inputLen = strlen(input);
+        int inputLen = strlen(input);HERE WE ARE
         // early exit - word is too big to possibly match any words
         if (inputLen - maxEditDistance > maxDictionaryWordLength)
         {

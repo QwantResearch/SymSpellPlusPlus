@@ -11,7 +11,7 @@ class SuggestItem
 {
 public:
     /// <summary>The suggested correctly spelled word.</summary>
-    const char* term;
+    string term;
     /// <summary>Edit distance between searched for word and suggestion.</summary>
     int distance = 0;
     /// <summary>Frequency of suggestion in the dictionary (a measure of how common the word is).</summary>
@@ -21,7 +21,7 @@ public:
     SuggestItem(const symspell::SuggestItem & p);
     std::string ToString();
 
-    SuggestItem(const char* term, int distance, long count);
+    SuggestItem(string term, int distance, long count);
 
     ~SuggestItem();
 

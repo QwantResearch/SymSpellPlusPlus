@@ -20,14 +20,14 @@ namespace symspell {
     public:
         SymSpell(int initialCapacity = defaultInitialCapacity, int maxDictionaryEditDistance = defaultMaxEditDistance, int prefixLength = defaultPrefixLength, int countThreshold = defaultCountThreshold, int compactLevel = defaultCompactLevel);
         ~SymSpell();
-        bool CreateDictionaryEntry(const char * key, long count, SuggestionStage * staging = nullptr);
+        bool CreateDictionaryEntry(string key, long count, SuggestionStage * staging = nullptr);
         void EditsPrefix(string key, unordered_set<size_t>& hashSet);
-        void Edits(const char * word, int editDistance, unordered_set<size_t> & deleteWords);
+        void Edits(string word, int editDistance, unordered_set<size_t> & deleteWords);
         void PurgeBelowThresholdWords();
         void CommitStaged(SuggestionStage staging);
-        void Lookup(const char * input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items);
-        void Lookup(const char * input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items);
-        void Lookup(const char * input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions);
+        void Lookup(string input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items);
+        void Lookup(string input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items);
+        void Lookup(string input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions);
         bool LoadDictionary(string corpus, int termIndex, int countIndex);
         void rempaceSpaces(char* source);
         shared_ptr<WordSegmentationItem> WordSegmentation(string input);
