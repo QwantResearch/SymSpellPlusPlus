@@ -10,8 +10,8 @@ namespace symspell {
 class WordSegmentationItem
 {
 public:
-    const char* segmentedString{ nullptr };
-    const char* correctedString{ nullptr };
+    string segmentedString;
+    string correctedString;
     u_int8_t distanceSum = 0;
     double probabilityLogSum = 0;
 
@@ -21,7 +21,7 @@ public:
     WordSegmentationItem& operator=(const WordSegmentationItem&) { return *this; }
     WordSegmentationItem& operator=(WordSegmentationItem&&) { return *this; }
 
-    void set(const char* pSegmentedString, const char* pCorrectedString, u_int8_t pDistanceSum, double pProbabilityLogSum);
+    void set(string pSegmentedString, string pCorrectedString, u_int8_t pDistanceSum, double pProbabilityLogSum);
     ~WordSegmentationItem();
 };
 }

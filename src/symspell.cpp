@@ -195,17 +195,17 @@ namespace symspell {
         staging.CommitTo(deletes);
     }
 
-    void SymSpell::Lookup(string input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items)
+    void SymSpell::Lookup(string& input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items)
     {
         this->Lookup(input, verbosity, this->maxDictionaryEditDistance, false, items);
     }
 
-    void SymSpell::Lookup(string input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items)
+    void SymSpell::Lookup(string& input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items)
     {
         this->Lookup(input, verbosity, maxEditDistance, false, items);
     }
 
-    void SymSpell::Lookup(string input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions)
+    void SymSpell::Lookup(string& input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions)
     {
         mtx.lock();
         suggestions.clear();
@@ -222,13 +222,13 @@ namespace symspell {
         long suggestionCount = 0;
         size_t suggestionsLen = 0;
         auto wordsFinded = words.find(input);
-        int inputLen = strlen(input);HERE WE ARE
+        int inputLen = (int)input.size();
         // early exit - word is too big to possibly match any words
         if (inputLen - maxEditDistance > maxDictionaryWordLength)
         {
             if (includeUnknown && (suggestionsLen == 0))
             {
-                std::unique_ptr<SuggestItem> unq(new SuggestItem(_strdup(input), maxEditDistance + 1, 0));
+                std::unique_ptr<SuggestItem> unq(new SuggestItem(input, maxEditDistance + 1, 0));
                 suggestions.push_back(std::move(unq));
             }
 
@@ -241,9 +241,9 @@ namespace symspell {
         if (wordsFinded != wordsEnd)
         {
             suggestionCount = wordsFinded->second;
-            cerr << "Exact Match "<< input << suggestionCount << endl;
+//             cerr << "Exact Match "<< input << suggestionCount << endl;
             {
-                std::unique_ptr<SuggestItem> unq(new SuggestItem(_strdup(input), 0, suggestionCount));
+                std::unique_ptr<SuggestItem> unq(new SuggestItem(input, 0, suggestionCount));
                 unq->ToString();
                 suggestions.push_back(std::move(unq));
             }
@@ -254,7 +254,7 @@ namespace symspell {
             {
                 if (includeUnknown && (suggestionsLen == 0))
                 {
-                    std::unique_ptr<SuggestItem> unq(new SuggestItem(_strdup(input), maxEditDistance + 1, 0));
+                    std::unique_ptr<SuggestItem> unq(new SuggestItem(input, maxEditDistance + 1, 0));
                     suggestions.push_back(std::move(unq));
                     ++suggestionsLen;
                 }
@@ -269,7 +269,7 @@ namespace symspell {
         {
             if (includeUnknown && (suggestionsLen == 0))
             {
-                std::unique_ptr<SuggestItem> unq(new SuggestItem(_strdup(input), maxEditDistance + 1, 0));
+                std::unique_ptr<SuggestItem> unq(new SuggestItem(input, maxEditDistance + 1, 0));
                 suggestions.push_back(std::move(unq));
 
                 ++suggestionsLen;
@@ -290,19 +290,20 @@ namespace symspell {
         if (inputPrefixLen > prefixLength)
         {
             inputPrefixLen = prefixLength;
-            candidates.push_back(strndup(input, inputPrefixLen));
+            candidates.push_back(input.substr(0,inputPrefixLen));
         }
         else
         {
-            candidates.push_back(_strdup(input));
+            candidates.push_back(input);
         }
 
         size_t candidatesLen = 1; // candidates.size();
         while (candidatePointer < candidatesLen)
         {
-            string candidate = candidates[candidatePointer++];
-            int candidateLen = strlen(candidate);
+            string candidate = candidates[candidatePointer];
+            int candidateLen = (int)candidate.size();
             int lengthDiff = inputPrefixLen - candidateLen;
+            candidatePointer++;
 
             //save some time - early termination
             //if canddate distance is already higher than suggestion distance, than there are no better suggestions to be expected
@@ -315,22 +316,22 @@ namespace symspell {
             }
 
             auto deletesFinded = deletes.find(stringHash(candidate));
-            vector<string>* dictSuggestions = nullptr;
+            vector<string> dictSuggestions;
 
             //read candidate entry from dictionary
             if (deletesFinded != deletesEnd)
             {
-                dictSuggestions = &deletesFinded->second;
-                size_t dictSuggestionsLen = dictSuggestions->size();
+                dictSuggestions = deletesFinded->second;
+                size_t dictSuggestionsLen = dictSuggestions.size();
                 //iterate through suggestions (to other correct dictionary items) of delete item and add them to suggestion list
                 for (int i = 0; i < dictSuggestionsLen; ++i)
                 {
-                    string suggestion = dictSuggestions->at(i);
-                    int suggestionLen = strlen(suggestion);
-                    if (strcmp(suggestion, input) == 0) continue;
+                    string suggestion = dictSuggestions.at(i);
+                    int suggestionLen = (int)suggestion.size();
+                    if (suggestion.compare(input) == 0) continue;
                     if ((abs(suggestionLen - inputLen) > maxEditDistance2) // input and sugg lengths diff > allowed/current best distance
                         || (suggestionLen < candidateLen) // sugg must be for a different delete string, in same bin only because of hash collision
-                        || (suggestionLen == candidateLen && strcmp(suggestion, candidate) != 0)) // if sugg len = delete len, then it either equals delete or is in same bin only because of hash collision
+                        || (suggestionLen == candidateLen && suggestion.compare(candidate) != 0)) // if sugg len = delete len, then it either equals delete or is in same bin only because of hash collision
                         continue;
                     auto suggPrefixLen = min(suggestionLen, prefixLength);
                     if (suggPrefixLen > inputPrefixLen && (suggPrefixLen - candidateLen) > maxEditDistance2) continue;
@@ -361,7 +362,7 @@ namespace symspell {
                     else
                         if ((prefixLength - maxEditDistance == candidateLen)
                             && (((_min = min(inputLen, suggestionLen) - prefixLength) > 1)
-                                && (std::strncmp(input, suggestion, max(inputLen + 1 - _min, suggestionLen + 1 - _min)) != 0) /*(input.substr(inputLen + 1 - _min) != suggestion.substr(suggestionLen + 1 - _min))*/)
+                                && (input.substr(inputLen + 1 - _min) != suggestion.substr(suggestionLen + 1 - _min)) /*(input.substr(inputLen + 1 - _min) != suggestion.substr(suggestionLen + 1 - _min))*/)
                             || ((_min > 0) && (input[inputLen - _min] != suggestion[suggestionLen - _min])
                                 && ((input[inputLen - _min - 1] != suggestion[suggestionLen - _min])
                                     || (input[inputLen - _min] != suggestion[suggestionLen - _min - 1]))))
@@ -379,13 +380,13 @@ namespace symspell {
 
                     if (distance <= maxEditDistance2)
                     {
-                        auto wordsFindedNew = words.find(strdup(suggestion));
-                        if (wordsFindedNew != wordsEnd) cerr << wordsFindedNew->second<<endl;
-                        else cerr << "Error, can't find " << suggestion << endl;
+                        auto wordsFindedNew = words.find(suggestion);
+//                         if (wordsFindedNew != wordsEnd) cerr << wordsFindedNew->second<<endl;
+//                         else cerr << "Error, can't find " << suggestion << endl;
                         
-                        suggestionCount = words[strdup(suggestion)];
-                        cerr << "TEST HERE : " << "\t" << suggestion << "\t" << distance <<  "\t" << suggestionCount<< "\t" <<endl;
-                        std::unique_ptr<SuggestItem> si(new SuggestItem(_strdup(suggestion), distance, suggestionCount));
+                        suggestionCount = words[suggestion];
+//                         cerr << "TEST HERE : " << "\t" << suggestion << "\t" << distance <<  "\t" << suggestionCount<< "\t" <<endl;
+                        std::unique_ptr<SuggestItem> si(new SuggestItem(suggestion, distance, suggestionCount));
                         if (suggestionsLen > 0)
                         {
                             switch (verbosity)
@@ -433,18 +434,21 @@ namespace symspell {
 
                 for (int i = 0; i < candidateLen; ++i)
                 {
-                    char* tmp = new char[candidateLen];
-                    std::memcpy(tmp, candidate, i);
-                    std::memcpy(tmp + i, candidate + i + 1, candidateLen - 1 - i);
-                    tmp[candidateLen - 1] = '\0';
+                    string tmp; 
+                    tmp = candidate.substr(0,i);
+                    tmp += candidate.substr( i + 1,candidateLen - 1 - i);
+//                     char* tmp = new char[candidateLen];
+//                     std::memcpy(tmp, candidate, i);
+//                     std::memcpy(tmp + i, candidate + i + 1, candidateLen - 1 - i);
+//                     tmp[candidateLen - 1] = '\0';
 
                     if (hashset1.insert(stringHash(tmp)).second)
                     {
                         candidates.push_back(tmp);
                         ++candidatesLen;
                     }
-                    else
-                        delete[] tmp;
+                    else tmp.clear();
+//                         delete[] tmp;
                 }
             }
         }//end while
@@ -462,8 +466,8 @@ namespace symspell {
         //std::cout << hashset2.size() << std::endl;
 
         auto candidatesEnd = candidates.end();
-        for (auto it = candidates.begin(); it != candidatesEnd; ++it)
-            delete[] * it;
+//         for (auto it = candidates.begin(); it != candidatesEnd; ++it)
+//             delete[] * it;
 
 
         candidates.clear();
@@ -512,8 +516,9 @@ namespace symspell {
             }
 
             auto linePartsEnd = lineParts.end();
-            for (auto it = lineParts.begin(); it != linePartsEnd; ++it)
-                delete[] * it;
+//             for (auto it = lineParts.begin(); it != linePartsEnd; ++it)
+//                 delete[] * it;
+            lineParts.clear();
         }
 
         stream.close();
@@ -524,33 +529,31 @@ namespace symspell {
         return true;
     }
 
-    void SymSpell::rempaceSpaces(char* source)
+    void SymSpell::rempaceSpaces(string& source)
     {
-        char* i = source;
-        char* j = source;
-
-        do
+        
+        string cleaned_source;
+        for (int j=0; j<(int)source.size(); j++)
         {
-            *i = *j;
-            if (*i != ' ')
-                ++i;
-        } while (*j++ != 0);
+            if (source[j] != ' ') cleaned_source+=source[j];
+        }
+        source=cleaned_source;
     }
 
-    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string input)
+    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string& input)
     {
         return WordSegmentation(input, this->maxDictionaryEditDistance, this->maxDictionaryWordLength);
     }
 
-    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string input, size_t maxEditDistance)
+    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string& input, size_t maxEditDistance)
     {
         return WordSegmentation(input, maxEditDistance, this->maxDictionaryWordLength);
     }
 
-    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string input, size_t maxEditDistance, size_t maxSegmentationWordLength)
+    shared_ptr<WordSegmentationItem> SymSpell::WordSegmentation(string& input, size_t maxEditDistance, size_t maxSegmentationWordLength)
     {
-        size_t inputLen = strlen(input);
-        int arraySize = min(maxSegmentationWordLength, strlen(input));
+        size_t inputLen = (int)input.size();
+        int arraySize = min(maxSegmentationWordLength, inputLen);
         std::vector<shared_ptr<WordSegmentationItem>> compositions;
         compositions.resize(arraySize);
 
@@ -568,23 +571,26 @@ namespace symspell {
             int imax = min(inputLen - j, maxSegmentationWordLength);
             for (int i = 1; i <= imax; ++i)
             {
-                char* part = new char[i + 1];
-                std::memcpy(part, input + j, i);
-                part[i] = '\0';
+                string part = input.substr(j,i);
+//                 char* part = new char[i + 1];
+//                 std::memcpy(part, input + j, i);
+//                 part[i] = '\0';
 
                 int separatorLength = 0;
                 int topEd = 0;
                 double topProbabilityLog = 0;
-                char* topResult = nullptr;
+                string topResult;
+//                 char* topResult = nullptr;
 
                 if (isspace(part[0]))
                 {
-                    size_t partLen = strlen(part);
-                    char* tmp = new char[partLen];
-                    std::memcpy(tmp, part + 1, partLen - 1);
-                    tmp[(i - j)] = '\0';
+                    int partLen = (int)part.size();
+//                     char* tmp = new char[partLen];
+//                     std::memcpy(tmp, part + 1, partLen - 1);
+                    string tmp=part.substr(1,partLen - 1);
+//                     tmp[(i - j)] = '\0';
 
-                    delete[] part;
+//                     delete[] part;
                     part = tmp;
                 }
                 else
@@ -594,19 +600,20 @@ namespace symspell {
                 }
 
                 //remove space from part1, add number of removed spaces to topEd
-                topEd += strlen(part);
+                topEd += (int)part.size();
                 //remove space
                 rempaceSpaces(part);
                 //add number of removed spaces to ed
-                topEd -= strlen(part);
+                topEd -= (int)part.size();
                 vector<std::unique_ptr<symspell::SuggestItem>> results;
                 Lookup(part, symspell::Verbosity::Top, maxEditDistance, results);
                 if (results.size() > 0)
                 {
-                    size_t termLen = strlen(results[0]->term);
-                    topResult = new char[termLen + 1];
-                    std::memcpy(topResult, results[0]->term, termLen);
-                    topResult[termLen] = '\0';
+                    int termLen = (int)results[0]->term.size();
+                    topResult = results[0]->term.substr(0,termLen);
+//                     topResult = new char[termLen + 1];
+//                     std::memcpy(topResult, results[0]->term, termLen);
+//                     topResult[termLen] = '\0';
 
                     topEd += results[0]->distance;
                     //Naive Bayes Rule
@@ -620,12 +627,12 @@ namespace symspell {
                 }
                 else
                 {
-                    delete[] topResult;
+                    topResult.clear();
                     topResult = part;
                     //default, if word not found
                     //otherwise long input text would win as long unknown word (with ed=edmax+1 ), although there there should many spaces inserted
-                    topEd += strlen(part);
-                    topProbabilityLog = (double)log10(10.0 / (N * pow(10.0, strlen(part))));
+                    topEd += (int)part.size();
+                    topProbabilityLog = (double)log10(10.0 / (N * pow(10.0, (float)part.size())));
                 }
 
                 int destinationIndex = ((i + circularIndex) % arraySize);
@@ -633,7 +640,7 @@ namespace symspell {
                 //set values in first loop
                 if (j == 0)
                 {
-                    compositions[destinationIndex]->set(_strdup(part), _strdup(topResult), topEd, topProbabilityLog);
+                    compositions[destinationIndex]->set(part, topResult, topEd, topProbabilityLog);
                 }
                 else if ((i == maxSegmentationWordLength)
                     //replace values if better probabilityLogSum, if same edit distance OR one space difference
@@ -644,29 +651,35 @@ namespace symspell {
                     string segmented = compositions[circularIndex]->segmentedString;
                     string corrected = compositions[circularIndex]->correctedString;
 
-                    size_t segmentedLen = strlen(segmented);
-                    size_t correctedLen = strlen(corrected);
-                    size_t partLen = strlen(part);
-                    size_t topResultLen = strlen(topResult);
+                    int segmentedLen = (int)segmented.size();
+                    int correctedLen = (int)corrected.size();
+                    int partLen = (int)part.size();
+                    int topResultLen = (int)topResult.size();
 
-                    char* segmentedTmp = new char[segmentedLen + partLen + 2];
-                    char* correctedTmp = new char[correctedLen + topResultLen + 2];
+//                     char* segmentedTmp = new char[segmentedLen + partLen + 2];
+//                     char* correctedTmp = new char[correctedLen + topResultLen + 2];
+                    string segmentedTmp=segmented;
+                    segmentedTmp +=" ";
+                    segmentedTmp +=part;
+                    string correctedTmp = corrected;
+                    segmentedTmp +=" ";
+                    segmentedTmp +=topResult;
+//                     std::memcpy(segmentedTmp, segmented, segmentedLen);
+//                     std::memcpy(segmentedTmp + segmentedLen, " ", 1);
+//                     std::memcpy(segmentedTmp + segmentedLen + 1, part, partLen);
+//                     segmentedTmp[segmentedLen + partLen + 1] = '\0';
 
-                    std::memcpy(segmentedTmp, segmented, segmentedLen);
-                    std::memcpy(segmentedTmp + segmentedLen, " ", 1);
-                    std::memcpy(segmentedTmp + segmentedLen + 1, part, partLen);
-                    segmentedTmp[segmentedLen + partLen + 1] = '\0';
+//                     std::memcpy(correctedTmp, corrected, correctedLen);
+//                     std::memcpy(correctedTmp + correctedLen, " ", 1);
+//                     std::memcpy(correctedTmp + correctedLen + 1, topResult, topResultLen);
+//                     correctedTmp[correctedLen + topResultLen + 1] = '\0';
+//                     if (strlen(compositions[destinationIndex]->segmentedString) > 0)
+                    if ((int)compositions[destinationIndex]->segmentedString.size() > 0)
+                        compositions[destinationIndex]->segmentedString.clear();
 
-                    std::memcpy(correctedTmp, corrected, correctedLen);
-                    std::memcpy(correctedTmp + correctedLen, " ", 1);
-                    std::memcpy(correctedTmp + correctedLen + 1, topResult, topResultLen);
-                    correctedTmp[correctedLen + topResultLen + 1] = '\0';
-
-                    if (strlen(compositions[destinationIndex]->segmentedString) > 0)
-                        delete[] compositions[destinationIndex]->segmentedString;
-
-                    if (strlen(compositions[destinationIndex]->correctedString) > 0)
-                        delete[] compositions[destinationIndex]->correctedString;
+//                     if (strlen(compositions[destinationIndex]->correctedString) > 0)
+                    if ((int)compositions[destinationIndex]->correctedString.size() > 0)
+                        compositions[destinationIndex]->correctedString.clear();
 
                     compositions[destinationIndex]->set(segmentedTmp,
                         correctedTmp,
@@ -679,7 +692,7 @@ namespace symspell {
         return compositions[circularIndex];
     }
 
-    bool SymSpell::DeleteInSuggestionPrefix(char const* del, int deleteLen, char const* suggestion, int suggestionLen)
+    bool SymSpell::DeleteInSuggestionPrefix(string del, int deleteLen, string suggestion, int suggestionLen)
     {
         if (deleteLen == 0) return true;
         if (prefixLength < suggestionLen) suggestionLen = prefixLength;

@@ -25,14 +25,14 @@ namespace symspell {
         void Edits(string word, int editDistance, unordered_set<size_t> & deleteWords);
         void PurgeBelowThresholdWords();
         void CommitStaged(SuggestionStage staging);
-        void Lookup(string input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items);
-        void Lookup(string input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items);
-        void Lookup(string input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions);
+        void Lookup(string& input, Verbosity verbosity, vector<std::unique_ptr<symspell::SuggestItem>> & items);
+        void Lookup(string& input, Verbosity verbosity, int maxEditDistance, vector<std::unique_ptr<symspell::SuggestItem>> & items);
+        void Lookup(string& input, Verbosity verbosity, int maxEditDistance, bool includeUnknown, vector<std::unique_ptr<symspell::SuggestItem>> & suggestions);
         bool LoadDictionary(string corpus, int termIndex, int countIndex);
-        void rempaceSpaces(char* source);
-        shared_ptr<WordSegmentationItem> WordSegmentation(string input);
-        shared_ptr<WordSegmentationItem> WordSegmentation(string input, size_t maxEditDistance);
-        shared_ptr<WordSegmentationItem> WordSegmentation(string input, size_t maxEditDistance, size_t maxSegmentationWordLength);
+        void rempaceSpaces(string& source);
+        shared_ptr<WordSegmentationItem> WordSegmentation(string& input);
+        shared_ptr<WordSegmentationItem> WordSegmentation(string& input, size_t maxEditDistance);
+        shared_ptr<WordSegmentationItem> WordSegmentation(string& input, size_t maxEditDistance, size_t maxSegmentationWordLength);
         /// <summary>Maximum edit distance for dictionary precalculation.</summary>
         size_t MaxDictionaryEditDistance() { return this->maxDictionaryEditDistance; }
 
@@ -82,7 +82,7 @@ namespace symspell {
         unordered_map<string, long> belowThresholdWords;
         unordered_map<string, long>::iterator belowThresholdWordsEnd;
 
-        bool DeleteInSuggestionPrefix(char const* del, int deleteLen, char const* suggestion, int suggestionLen);
+        bool DeleteInSuggestionPrefix(string del, int deleteLen, string suggestion, int suggestionLen);
     };
 }
 

@@ -12,9 +12,11 @@ namespace symspell {
         /// getPath : bool. If True, sequence of operations to do to go from
         ///           word1 to word2
         ///
-        int size1 = strlen(word1) + 1, size2 = strlen(word2) + 1;
+        int size1 = (int)word1.size() + 1;
+        int size2 = (int)word2.size() + 1;
         int suppr_dist, insert_dist, subs_dist;
-        int* dist = new int[(size1)*size2];
+        vector<int> dist(size1*size2,0.0);
+//         int* dist = new int[(size1)*size2];
 
         for (int i = 0; i < size1; ++i)
             dist[size2*i] = i;
@@ -34,7 +36,7 @@ namespace symspell {
 
         // --------------------------------------------------------
         int res = dist[size1 * size2 - 1];
-        delete[] dist;
+//         delete[] dist;
         return(res);
     }
 
@@ -45,9 +47,10 @@ namespace symspell {
         /// word1 : first word
         /// word2 : second word
         ///
-        int size1 = strlen(word1) + 1, size2 = strlen(word2) + 1;
+        int size1 = (int)word1.size() + 1;
+        int size2 = (int)word2.size() + 1;
         int suppr_dist, insert_dist, subs_dist, val;
-        int* dist = new int[size1*size2];
+        vector<int> dist(size1*size2,0.0);
 
         for (int i = 0; i < size1; ++i)
             dist[size2*i] = i;
@@ -68,7 +71,7 @@ namespace symspell {
         }
 
         int res = dist[size1*size2 - 1];
-        delete[] dist;
+//         delete[] dist;
         return(res);
     }
 }

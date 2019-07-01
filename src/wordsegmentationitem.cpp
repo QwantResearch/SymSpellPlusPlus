@@ -3,7 +3,7 @@
 
 namespace symspell {
 
-    void WordSegmentationItem::set(const char* pSegmentedString, const char* pCorrectedString, u_int8_t pDistanceSum, double pProbabilityLogSum)
+    void WordSegmentationItem::set(string pSegmentedString, string pCorrectedString, u_int8_t pDistanceSum, double pProbabilityLogSum)
     {
         this->segmentedString = pSegmentedString;
         this->correctedString = pCorrectedString;
@@ -20,7 +20,7 @@ namespace symspell {
     }
     WordSegmentationItem::~WordSegmentationItem()
     {
-        delete[] segmentedString;
-        delete[] correctedString;
+        segmentedString.clear();
+        correctedString.clear();
     }
 }
