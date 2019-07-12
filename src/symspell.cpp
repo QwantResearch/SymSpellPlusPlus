@@ -479,6 +479,8 @@ namespace symspell {
     bool SymSpell::LoadDictionary(string corpus, int termIndex, int countIndex)
     {
         ifstream stream;
+        int l_nb_lines_file = 0;
+        int l_nb_lines_loaded = 0;
         stream.open(corpus);
         if (!stream.is_open())
             return false;
@@ -497,33 +499,34 @@ namespace symspell {
         while (getline(stream, line))
         {
             vector<string> lineParts;
-            std::stringstream ss(line);
-            std::string token;
-            while (std::getline(ss, token, '\t')) {
-                size_t len = token.size();
-                char* tmp = new char[len + 1];
-                std::memcpy(tmp, token.c_str(), len);
-                tmp[len] = '\0';
-                lineParts.push_back(tmp);
-            }
-
-            if (lineParts.size() >= 2)
+            l_nb_lines_file++;
+            if ((int)line.find(" ") < 0)
             {
-                long count = stoll(lineParts[countIndex]);
-                CreateDictionaryEntry(lineParts[termIndex], count/*, &staging*/);
-            }
+                std::stringstream ss(line);
+                std::string token;
+                while (std::getline(ss, token, '\t')) {
+                    size_t len = token.size();
+                    char* tmp = new char[len + 1];
+                    std::memcpy(tmp, token.c_str(), len);
+                    tmp[len] = '\0';
+                    lineParts.push_back(tmp);
+                }
 
-            auto linePartsEnd = lineParts.end();
-//             for (auto it = lineParts.begin(); it != linePartsEnd; ++it)
-//                 delete[] * it;
+                if (lineParts.size() >= 2)
+                {
+                    long count = stoll(lineParts[countIndex]);
+                    CreateDictionaryEntry(lineParts[termIndex], count/*, &staging*/);
+                }
+
+                auto linePartsEnd = lineParts.end();
+                l_nb_lines_loaded++;
+            }
             lineParts.clear();
         }
 
         stream.close();
+        cerr << "Loaded " << l_nb_lines_loaded << "/" << l_nb_lines_file << " lines" <<endl;
 
-
-
-        //CommitStaged(staging);
         return true;
     }
 
