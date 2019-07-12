@@ -241,10 +241,8 @@ namespace symspell {
         if (wordsFinded != wordsEnd)
         {
             suggestionCount = wordsFinded->second;
-//             cerr << "Exact Match "<< input << suggestionCount << endl;
             {
                 std::unique_ptr<SuggestItem> unq(new SuggestItem(input, 0, suggestionCount));
-                unq->ToString();
                 suggestions.push_back(std::move(unq));
             }
 
