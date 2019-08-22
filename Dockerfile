@@ -17,16 +17,11 @@ RUN apt-get -y update && \
         git \
         cmake
 
-COPY . /opt/url_segmenter
+COPY . /opt/SymSpellPlusPlus
 
-WORKDIR /opt/url_segmenter
+WORKDIR /opt/SymSpellPlusPlus
 
 RUN ./install.sh
-
-#RUN apt-get -y remove \
-#      libboost-locale1.65-dev \
-#      libboost-regex1.65-dev \
-#      libyaml-cpp-dev
 
 RUN groupadd -r qnlp && useradd --system -s /bin/bash -g qnlp qnlp
 
