@@ -15,7 +15,9 @@ public:
         /// <summary>Levenshtein algorithm.</summary>
         Levenshtein,
         /// <summary>Damerau optimal string alignment algorithm.</summary>
-        DamerauOSA
+        DamerauOSA,
+        /// <summary>Damerau optimal string alignment algorithm considering 'e' with accent as equivalent.</summary>
+        DamerauOSAspe
     };
 
     EditDistance(DistanceAlgorithm algorithm) 
@@ -23,6 +25,7 @@ public:
         this->algorithm = algorithm;
         switch (algorithm) {
         case DistanceAlgorithm::DamerauOSA: this->distanceComparer = dl_dist; break;
+        case DistanceAlgorithm::DamerauOSAspe: this->distanceComparer = dl_dist_spe; break;
         case DistanceAlgorithm::Levenshtein: this->distanceComparer = levenshtein_dist; break;
         default: throw std::invalid_argument("Unknown distance algorithm.");
         }

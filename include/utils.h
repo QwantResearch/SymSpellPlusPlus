@@ -20,6 +20,9 @@
 #include <unordered_set>
 #include <string>
 #include <math.h>
+#include <codecvt>
+#include <locale>
+
 // #include <sparsepp/spp.h>
 #define _strdup strdup
 
@@ -43,7 +46,6 @@
 // 
 using namespace std;
 
-
 namespace symspell {
 #define defaultMaxEditDistance 2
 #define defaultPrefixLength 7
@@ -51,6 +53,8 @@ namespace symspell {
 #define defaultInitialCapacity 1024
 #define defaultCompactLevel 16
 #define mini(a, b, c) (min(a, min(b, c)))
+
+
 
     enum class Verbosity
     {
@@ -129,6 +133,8 @@ namespace symspell {
 
     int levenshtein_dist(string& word1, string& word2);
     int dl_dist(string& word1, string& word2);
+    int dl_dist_spe(string& word1, string& word2);
+    float dl_dist_float(string& word1, string& word2);
     
 }
 
