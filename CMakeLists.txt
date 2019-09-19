@@ -22,9 +22,9 @@ SET(SOURCES
   ${CMAKE_SOURCE_DIR}/src/wordsegmentationitem.cpp
 )
 
-# install(TARGETS url-segmenter DESTINATION bin)
 add_library(${PROJECT_NAME} ${SOURCES})
-# target_link_libraries(${PROJECT_NAME} ${LIBS})
+
+add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION lib/)
 install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h*")

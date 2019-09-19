@@ -1,56 +1,52 @@
-// VS.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
-#ifdef _MSC_VER
-#if( _SECURE_SCL != 0 )
-#pragma message( "Warning: _SECURE_SCL != 0. You _will_ get either slowness or runtime errors." )
-#endif
-
-#if( _HAS_ITERATOR_DEBUGGING != 0 )
-#pragma message( "Warning: _HAS_ITERATOR_DEBUGGING != 0. You _will_ get either slowness or runtime errors." )
-#endif
-#endif
-#ifdef _MSC_VER
-#   define _CRT_SECURE_NO_WARNINGS
-#   define _SCL_SECURE_NO_WARNINGS
-#   define _ITERATOR_DEBUG_LEVEL 0
-#   define _SECURE_SCL 0
-
-#endif
-
-#include "../test.h"
 #include <iostream>
-#include <chrono> 
+#include "../include/symspell.h"
 
-int main()
+using namespace std;
+
+void Split(const std::string &line, std::vector<std::string> &pieces, const std::string del) 
 {
-    //Catch::Session().run();
-	auto start = std::chrono::high_resolution_clock::now();
-	int index = 1000000;
+  size_t begin = 0;
+  size_t pos = 0;
+  std::string token;
 
-	symspell::SymSpell symSpell;
-	symSpell.CreateDictionaryEntry("erhan", 1);
-	symSpell.CreateDictionaryEntry("orhan", 2);
-	symSpell.CreateDictionaryEntry("ayhan", 3);
-	char searchTerm[6] = "ozhan";
-	vector< std::unique_ptr<symspell::SuggestItem>> items;
-	while (index != 0)
-	{
-		symSpell.Lookup(searchTerm, symspell::Verbosity::Top, items);
-		--index;
-	}
-	auto finish = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = finish - start;
-	std::cout << "Elapsed time: " << elapsed.count() << " s\n";
+  while ((pos = line.find(del, begin)) != std::string::npos) 
+  {
+      if (pos > begin) 
+      {
+          token = line.substr(begin, pos - begin);
+          if (token.size() > 0) pieces.push_back(token);
+      }
+      begin = pos + del.size();
+  }
+  if (pos > begin) 
+  {
+      token = line.substr(begin, pos - begin);
+  }
+  if (token.size() > 0) pieces.push_back(token);
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+int main(int argc, char* argv[])
+{
+	symspell::SymSpell symSpell;
+        symSpell.LoadDictionary(argv[1],1,0);
+        int nbest = 1;
+        vector< std::unique_ptr<symspell::SuggestItem>> items;
+        std::string line;
+        while (std::getline(std::cin, line))
+        {
+            vector<string> vec_line;
+//             std::cout << line << std::endl;
+            Split(line,vec_line," ");
+            int inc=0;
+            while (inc < (int)vec_line.size())
+            {
+                symSpell.Lookup(vec_line[inc], symspell::Verbosity::All, items);
+                for(int i=0 ; i < nbest && i < (int)items.size(); i++)
+                {    
+                    cout << vec_line[inc] << "\t" << items[i]->term << "\t" << items[i]->count << "\t" << items[i]->distance << endl;
+                }
+                inc++;
+            }
+        }
+}
