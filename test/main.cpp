@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
                 for(int i=0 ; i < nbest && i < (int)items.size(); i++)
                 {    
 //                     cout << vec_line[inc] << "\t" << items[i]->term << "\t" << items[i]->count << "\t" << items[i]->distance << endl;
-                    if (i != 0) cout << " ";
+                    if (inc != 0) cout << " ";
                     cout << items[i]->term ; 
                 }
                 inc++;
