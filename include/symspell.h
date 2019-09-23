@@ -57,7 +57,7 @@ namespace symspell {
         int prefixLength; //prefix length  5..7
         long countThreshold; //a treshold might be specifid, when a term occurs so frequently in the corpus that it is considered a valid word for spelling correction
         uint compactMask;
-        EditDistance::DistanceAlgorithm distanceAlgorithm = EditDistance::DistanceAlgorithm::DamerauOSAspe;
+        EditDistance::DistanceAlgorithm distanceAlgorithm = EditDistance::DistanceAlgorithm::DamerauOSA;
         size_t maxDictionaryWordLength; //maximum dictionary term length
         std::mutex mtx;
 
