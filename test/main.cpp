@@ -41,12 +41,16 @@ int main(int argc, char* argv[])
             int inc=0;
             while (inc < (int)vec_line.size())
             {
+                items.clear();
                 symSpell.Lookup(vec_line[inc], symspell::Verbosity::All, items);
                 for(int i=0 ; i < nbest && i < (int)items.size(); i++)
                 {    
-                    cout << vec_line[inc] << "\t" << items[i]->term << "\t" << items[i]->count << "\t" << items[i]->distance << endl;
+//                     cout << vec_line[inc] << "\t" << items[i]->term << "\t" << items[i]->count << "\t" << items[i]->distance << endl;
+                    if (i != 0) cout << " ";
+                    cout << items[i]->term ; 
                 }
                 inc++;
             }
+            cout << endl; 
         }
 }
