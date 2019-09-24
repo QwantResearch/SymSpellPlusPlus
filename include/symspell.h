@@ -51,7 +51,7 @@ namespace symspell {
         /// <summary>Number of word prefixes and intermediate word deletes encoded in the dictionary.</summary>
         size_t EntryCount() { return this->deletes.size(); }
         
-        inline void setDistanceAlgorithm(EditDistance::DistanceAlgorithm ed) {distanceAlgorithm=ed;} 
+        inline void setDistanceAlgorithm(EditDistance::DistanceAlgorithm ed) {this->distanceComparer = new EditDistance(ed);} 
 
     private:
         int initialCapacity;

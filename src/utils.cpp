@@ -105,7 +105,6 @@ template <typename T> void fromUTF8(const string& source, basic_string<T, char_t
         /// word1 : first word
         /// word2 : second word
         ///
-//         cerr << word1 << " " << word2<< endl;
         wstring wword1;
         wstring wword2;
         fromUTF8(word1,wword1);
@@ -194,7 +193,6 @@ template <typename T> void fromUTF8(const string& source, basic_string<T, char_t
         /// word1 : first word
         /// word2 : second word
         ///
-        cerr << word1 << " " << word2<< endl;
         int size1 = (int)word1.size() + 1;
         int size2 = (int)word2.size() + 1;
         float suppr_dist, insert_dist, subs_dist, val;
@@ -209,7 +207,7 @@ template <typename T> void fromUTF8(const string& source, basic_string<T, char_t
                 suppr_dist = dist[size2*(i - 1) + j] + 1;
                 insert_dist = dist[size2*i + j - 1] + 1;
                 subs_dist = dist[size2*(i - 1) + j - 1];
-                if (int(word1[i - 1]) < 0) cerr << word1[i - 1] << " " << int(word1[i - 1])<< endl;
+//                 if (int(word1[i - 1]) < 0) cerr << word1[i - 1] << " " << int(word1[i - 1])<< endl;
                 if (word1[i - 1] != word2[j - 1])  // word indexes are implemented differently.
                         subs_dist += 1;
                 val = mini(suppr_dist, insert_dist, subs_dist);
