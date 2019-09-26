@@ -33,6 +33,9 @@ int main(int argc, char* argv[])
         int nbest = 1;
         vector< std::unique_ptr<symspell::SuggestItem>> items;
         std::string line;
+        symSpell.setDistanceAlgorithm(symspell::EditDistance::DistanceAlgorithm::DamerauOSAspe);
+        
+        
         while (std::getline(std::cin, line))
         {
             vector<string> vec_line;
